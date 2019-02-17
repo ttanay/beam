@@ -24,8 +24,6 @@ import tempfile
 import time
 import traceback
 import unittest
-import sys
-from cStringIO import StringIO
 from builtins import range
 
 import apache_beam as beam
@@ -35,10 +33,10 @@ from apache_beam.metrics.metricbase import MetricName
 from apache_beam.runners.portability import fn_api_runner
 from apache_beam.runners.worker import sdk_worker
 from apache_beam.runners.worker import statesampler
+from apache_beam.testing.test_utils import BlockStderr
 from apache_beam.testing.util import assert_that
 from apache_beam.testing.util import equal_to
 from apache_beam.transforms import window
-from apache_beam.testing.test_utils import BlockStderr 
 
 if statesampler.FAST_SAMPLER:
   DEFAULT_SAMPLING_PERIOD_MS = statesampler.DEFAULT_SAMPLING_PERIOD_MS
@@ -55,9 +53,10 @@ class FnApiRunnerTest(unittest.TestCase):
   def test_assert_that(self):
     # TODO: figure out a way for fn_api_runner to parse and raise the
     # underlying exception.
-    with self.assertRaisesRegexp(Exception, 'Failed assert'):
-      with self.create_pipeline() as p:
-        assert_that(p | beam.Create(['a', 'b']), equal_to(['a']))
+    with BlockStderr():
+      with self.assertRaisesRegexp(Exception, 'Failed assert'):
+        with self.create_pipeline() as p:
+          assert_that(p | beam.Create(['a', 'b']), equal_to(['a']))
 
   def test_create(self):
     with self.create_pipeline() as p:
@@ -277,25 +276,24 @@ class FnApiRunnerTest(unittest.TestCase):
 
   def test_error_message_includes_stage(self):
     # disable STDERR
-    with BlockStderr() as b:
-      
+    with BlockStderr():
       with self.assertRaises(BaseException) as e_cm:
         with self.create_pipeline() as p:
           def raise_error(x):
-              raise RuntimeError('x')
+            raise RuntimeError('x')
           # pylint: disable=expression-not-assigned
           (p
-          | beam.Create(['a', 'b'])
-          | 'StageA' >> beam.Map(lambda x: x)
-          | 'StageB' >> beam.Map(lambda x: x)
-          | 'StageC' >> beam.Map(raise_error)
-          | 'StageD' >> beam.Map(lambda x: x))
+           | beam.Create(['a', 'b'])
+           | 'StageA' >> beam.Map(lambda x: x)
+           | 'StageB' >> beam.Map(lambda x: x)
+           | 'StageC' >> beam.Map(raise_error)
+           | 'StageD' >> beam.Map(lambda x: x))
       self.assertIn('StageC', e_cm.exception.args[0])
       self.assertNotIn('StageB', e_cm.exception.args[0])
 
   def test_error_traceback_includes_user_code(self):
     # disable STDERR
-    with BlockStderr() as b:
+    with BlockStderr():
 
       def first(x):
         return second(x)
@@ -304,7 +302,7 @@ class FnApiRunnerTest(unittest.TestCase):
         return third(x)
 
       def third(x):
-          raise ValueError('x')
+        raise ValueError('x')
 
       try:
         with self.create_pipeline() as p:
@@ -313,7 +311,7 @@ class FnApiRunnerTest(unittest.TestCase):
         message = traceback.format_exc()
       else:
         raise AssertionError('expected exception not raised')
-      
+
       self.assertIn('first', message)
       self.assertIn('second', message)
       self.assertIn('third', message)

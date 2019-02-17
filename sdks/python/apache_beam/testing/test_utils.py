@@ -27,11 +27,11 @@ import imp
 import logging
 import os
 import shutil
+import sys
 import tempfile
 import time
-import sys
-from cStringIO import StringIO
 from builtins import object
+from io import StringIO
 
 from mock import Mock
 from mock import patch
@@ -182,11 +182,11 @@ def _cleanup_pubsub(components):
       logging.debug('Cannot delete topic/subscription. %s does not exist.',
                     c.full_name)
 
+
 # Use it to disable SDTERR
 class BlockStderr(object):
   def __enter__(self):
-    old_stdeer = sys.stderr
-    sys.stderr = mystderr = StringIO()
-    
-  def __exit__(self, *args, **kargs): 
+    sys.stderr = StringIO()
+
+  def __exit__(self, *args, **kargs):
     sys.stderr = sys.__stderr__
