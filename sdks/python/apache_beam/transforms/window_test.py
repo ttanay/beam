@@ -253,6 +253,39 @@ class WindowTest(unittest.TestCase):
                   label='assert:mean')
 
 
+class TimestampedValueParDoTest(unittest.TestCase):
+  """When a PCollection of TimestampedValue is created by adding timestamp
+  in the DoFn of a ParDo, its evaluator in the runner converts the
+  TimestampedValue to an object of WindowedValue with the value being the
+  value of TimestmapedValue, instead of the TimestampedValue object."""
+
+  def test_pardo_on_timestamped_value(self):
+
+    def create_timestamped_value(element, timestamp=core.DoFn.TimestampParam):
+      return [TimestampedValue(element, timestamp)]
+
+    def validate_type(type):
+      def process(element):
+        if not isinstance(element, type):
+          raise TypeError('The PCollection does not contain element(s) of \
+            type: {}'.format(type))
+        return [element]
+      return process
+
+    l = [GlobalWindows.windowed_value(1, 100),
+         GlobalWindows.windowed_value(2, 200),
+         GlobalWindows.windowed_value(3, 300)]
+
+    with TestPipeline() as p:
+      pc = (p
+            | Create(l)
+            | 'CreateTimestampedValue' >> core.ParDo(create_timestamped_value)
+            | 'ValidateType' >> core.ParDo(validate_type(TimestampedValue)))
+      assert_that(pc, equal_to([TimestampedValue(1, 100),
+                                TimestampedValue(2, 200),
+                                TimestampedValue(3, 300)]))
+
+
 class RunnerApiTest(unittest.TestCase):
 
   def test_windowfn_encoding(self):
