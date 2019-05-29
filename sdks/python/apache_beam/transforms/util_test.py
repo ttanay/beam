@@ -450,9 +450,9 @@ class ReifyTest(unittest.TestCase):
     l = [GlobalWindows.windowed_value('a', 100),
          GlobalWindows.windowed_value('b', 200),
          GlobalWindows.windowed_value('c', 300)]
-    expected = [TestWindowedValue(('a', 100, GlobalWindow), 100, [GlobalWindow()]),
-                TestWindowedValue(('b', 200, GlobalWindow), 200, [GlobalWindow()]),
-                TestWindowedValue(('c', 300, GlobalWindow), 300, [GlobalWindow()])]
+    expected = [TestWindowedValue(('a', 100, GlobalWindow()), 100, [GlobalWindow()]),
+                TestWindowedValue(('b', 200, GlobalWindow()), 200, [GlobalWindow()]),
+                TestWindowedValue(('c', 300, GlobalWindow()), 300, [GlobalWindow()])]
     with TestPipeline() as p:
       pc = p | beam.Create(l)
       reified_pc = pc | util.Reify.Window()
@@ -475,9 +475,9 @@ class ReifyTest(unittest.TestCase):
     l = [GlobalWindows.windowed_value(('a', 1), 100),
          GlobalWindows.windowed_value(('b', 2), 200),
          GlobalWindows.windowed_value(('c', 3), 300)]
-    expected = [TestWindowedValue(('a', (1, 100, GlobalWindow)), 100, [GlobalWindow()]),
-                TestWindowedValue(('b', (2, 200, GlobalWindow)), 200, [GlobalWindow()]),
-                TestWindowedValue(('c', (3, 300, GlobalWindow)), 300, [GlobalWindow()])]
+    expected = [TestWindowedValue(('a', (1, 100, GlobalWindow())), 100, [GlobalWindow()]),
+                TestWindowedValue(('b', (2, 200, GlobalWindow())), 200, [GlobalWindow()]),
+                TestWindowedValue(('c', (3, 300, GlobalWindow())), 300, [GlobalWindow()])]
     with TestPipeline() as p:
       pc = p | beam.Create(l)
       reified_pc = pc | util.Reify.Window()
