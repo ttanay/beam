@@ -514,7 +514,7 @@ class BigQueryFileLoadsIT(unittest.TestCase):
 
     args = self.test_pipeline.get_full_options_as_args(
         on_success_matcher=all_of(*pipeline_verifiers),
-        experiments='use_beam_bq_sink')
+        experiments='use_beam_bq_sink', streaming=True)
 
     with beam.Pipeline(argv=args) as p:
       _SIZE = len(_ELEMENTS)
@@ -642,7 +642,7 @@ class BigQueryFileLoadsIT(unittest.TestCase):
             data=[])]
 
     args = self.test_pipeline.get_full_options_as_args(
-        experiments='use_beam_bq_sink')
+        experiments='use_beam_bq_sink', streaming=True)
 
     with self.assertRaises(Exception):
       with beam.Pipeline(argv=args) as p:
