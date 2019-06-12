@@ -20,6 +20,8 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+import logging
+
 from apache_beam.internal import pickler
 from apache_beam.options.pipeline_options import StandardOptions
 from apache_beam.options.pipeline_options import TestOptions
@@ -43,8 +45,9 @@ class TestDirectRunner(DirectRunner):
     self.result = super(TestDirectRunner, self).run_pipeline(pipeline, options)
 
     try:
-      if not is_streaming:
-        self.result.wait_until_finish()
+      if is_streaming:
+        logging.warning('Waiting indefinitely for streaming job.')
+      self.result.wait_until_finish()
 
       if on_success_matcher:
         from hamcrest import assert_that as hc_assert_that
