@@ -831,6 +831,13 @@ class TestOptions(PipelineOptions):
               'version of the matcher which should extends '
               'hamcrest.core.base_matcher.BaseMatcher.'))
     parser.add_argument(
+        '--streaming_matcher',
+        default=None,
+        help=('Use an assert when the after e2e test pipeline was run but'
+              'did not finish. Useful for streaming pipelines. This is pickled'
+              'version of the matcher which should extend'
+              'hamcrest.core.base_matcher.BaseMatcher'))
+    parser.add_argument(
         '--dry_run',
         default=False,
         help=('Used in unit testing runners without submitting the '
@@ -847,6 +854,8 @@ class TestOptions(PipelineOptions):
     errors = []
     if self.view_as(TestOptions).on_success_matcher:
       errors.extend(validator.validate_test_matcher(self, 'on_success_matcher'))
+    if self.view_as(TestOptions).streaming_matcher:
+      errors.extend(validator.validate_test_matcher(self, 'streaming_matcher'))
     return errors
 
 

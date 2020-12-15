@@ -20,6 +20,10 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+import logging
+
+from hamcrest import assert_that as hc_assert_that
+
 from apache_beam.internal import pickler
 from apache_beam.options.pipeline_options import StandardOptions
 from apache_beam.options.pipeline_options import TestOptions
@@ -34,20 +38,22 @@ class TestDirectRunner(DirectRunner):
     """Execute test pipeline and verify test matcher"""
     test_options = options.view_as(TestOptions)
     on_success_matcher = test_options.on_success_matcher
+    streaming_matcher = test_options.streaming_matcher
+    wait_duration = test_options.wait_until_finish_duartion
     is_streaming = options.view_as(StandardOptions).streaming
 
     # [BEAM-1889] Do not send this to remote workers also, there is no need to
     # send this option to remote executors.
     test_options.on_success_matcher = None
+    test_options.streaming_matcher = None
 
     self.result = super(TestDirectRunner, self).run_pipeline(pipeline, options)
 
     try:
-      if not is_streaming:
-        self.result.wait_until_finish()
-
+      if is_streaming and streaming_matcher:
+        hc_assert_that(self.result, pickler.loads(streaming_matcher))
+      self.result.wait_until_finish(wait_duration=wait_duration)
       if on_success_matcher:
-        from hamcrest import assert_that as hc_assert_that
         hc_assert_that(self.result, pickler.loads(on_success_matcher))
     finally:
       if not PipelineState.is_terminal(self.result.state):
