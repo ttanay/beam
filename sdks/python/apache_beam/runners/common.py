@@ -926,9 +926,9 @@ class _OutputProcessor(OutputProcessor):
             and len(windowed_input_element.windows) != 1):
           windowed_value.windows *= len(windowed_input_element.windows)
       elif isinstance(result, TimestampedValue):
-        assign_context = WindowFn.AssignContext(result.timestamp, result.value)
+        assign_context = WindowFn.AssignContext(result.timestamp, result)
         windowed_value = WindowedValue(
-            result.value, result.timestamp,
+            result, result.timestamp,
             self.window_fn.assign(assign_context))
         if len(windowed_input_element.windows) != 1:
           windowed_value.windows *= len(windowed_input_element.windows)
